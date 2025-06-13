@@ -4,9 +4,16 @@ import sys
 class URL:
 
     def __init__(self, url):
-        self.scheme, url = url.split('://', 1)
+        split_url = url.split('://', 1)
+        url = split_url[-1]
+        
+        # allow url to be specified without scheme
+        if len(split_url) == 2:
+            self.scheme = split_url[0]
+        else:
+            self.scheme = 'http'
 
-        # Browser only supports http
+        # browser only supports http
         assert self.scheme == 'http'
 
         if '/' not in url:
