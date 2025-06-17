@@ -1,4 +1,5 @@
 import socket
+import ssl
 import sys
 
 class URL:
@@ -7,14 +8,18 @@ class URL:
         split_url = url.split('://', 1)
         url = split_url[-1]
         
-        # allow url to be specified without scheme
+        # give url default scheme
         if len(split_url) == 2:
             self.scheme = split_url[0]
         else:
-            self.scheme = 'http'
+            self.scheme = 'https'
 
-        # browser only supports http
-        assert self.scheme == 'http'
+        assert self.scheme in ['http', 'https']
+
+        if self.scheme == 'http':
+            self.port = 80
+        elif self.scheme == 'https':
+            self.port = 443
 
         if '/' not in url:
             url += '/'
@@ -35,7 +40,12 @@ class URL:
         request += '\r\n'
 
         # connect to socket 
-        s.connect((self.host, 80))
+        s.connect((self.host, self.port))
+
+        # encrypt connection if https
+        if self.scheme == 'https':
+            ctx = ssl.create_default_context()
+            s = ctx.wrap_socket(s, server_hostname=self.host)
 
         # send request
         s.send(request.encode('utf8'))
@@ -48,7 +58,7 @@ class URL:
 
         # read statusline
         statusline = response.readline()
-        version, status, description = statusline.split(" ", 2)
+        version, status, description = statusline.split(' ', 2)
 
         # read headers
         response_headers = {}
@@ -57,8 +67,8 @@ class URL:
             response_headers[header.lower()] = value.strip()
        
         # check for compressed data (not currently supported)
-        assert "transfer-encoding" not in response_headers
-        assert "content-encoding" not in response_headers
+        assert 'transfer-encoding' not in response_headers
+        assert 'content-encoding' not in response_headers
 
         # read body
         body = response.read()
@@ -68,16 +78,16 @@ def show(body):
     # prints text without tags from html file
     in_tag = False
     for c in body:
-        if c == "<":
+        if c == '<':
             in_tag = True
-        elif c == ">":
+        elif c == '>':
             in_tag = False
         elif not in_tag:
-            print(c, end="")
+            print(c, end='')
 
 def load(url):
     body = url.request()
     show(body)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     load(URL(sys.argv[1]))
