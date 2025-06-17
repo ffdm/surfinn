@@ -2,6 +2,32 @@ import socket
 import ssl
 import sys
 
+
+class Response:
+    def __init__(self, response):
+        # read statusline
+        self.version, self.status, self.description = response.readline().split(' ', 2)
+
+        # read headers
+        self.headers = {}
+        while (line := response.readline()) != '\r\n':
+            header, value = line.split(':', 1)
+            self.headers[header.lower()] = value.strip()
+       
+        # check for compressed data (not currently supported)
+        assert 'transfer-encoding' not in self.headers
+        assert 'content-encoding' not in self.headers
+
+        # read body
+        self.body = response.read()
+
+    def __str__(self):
+        string = f"{self.version} {self.status} {self.description}\n"
+        for header, value in self.headers.items():
+            string += f"{header}: {value}\n"
+        string += self.body
+        return string
+
 class URL:
 
     def __init__(self, url):
@@ -64,29 +90,16 @@ class URL:
         s.send(request.encode('utf8'))
 
         # receive response
-        response = s.makefile('r', encoding='utf8', newline='\r\n')
+        response_data = s.makefile('r', encoding='utf8', newline='\r\n')
+        
+        # parse response
+        response = Response(response_data)
 
         # close socket
         s.close()
 
-        # read statusline
-        statusline = response.readline()
-        version, status, description = statusline.split(' ', 2)
-
-        # read headers
-        response_headers = {}
-        while (line := response.readline()) != '\r\n':
-            header, value = line.split(':', 1)
-            response_headers[header.lower()] = value.strip()
-       
-        # check for compressed data (not currently supported)
-        assert 'transfer-encoding' not in response_headers
-        assert 'content-encoding' not in response_headers
-
-        # read body
-        body = response.read()
-        return body
-
+        return response
+        
 def show(body):
     # prints text without tags from html file
     in_tag = False
@@ -99,8 +112,21 @@ def show(body):
             print(c, end='')
 
 def load(url):
-    body = url.request()
-    show(body)
+    response = url.request()
+
+    # handle redirects
+    redirect_count = 0
+    while response.status[0] == '3' and redirect_count < 5:
+        redirect_count += 1
+        
+        # handle same host/scheme case
+        if response.headers['location'][0] == '/':
+            response = URL(url.scheme+'://'+url.host+response.headers['location']).request()
+        else: 
+            response = URL(response.headers['location']).request()
+
+    # display html body
+    show(response.body)
 
 if __name__ == '__main__':
     load(URL(sys.argv[1]))
