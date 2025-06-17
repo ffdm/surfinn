@@ -39,8 +39,17 @@ class URL:
         )
 
         # define request
-        request = f'GET {self.path} HTTP/1.0\r\n'
-        request += f'Host: {self.host}\r\n'
+        request = f'GET {self.path} HTTP/1.1\r\n'
+
+        # include headers
+        headers = {}
+        headers['Host'] = self.host
+        headers['Connection'] = "close"
+        headers['User-Agent'] = "Surfinn"
+        for header, value in headers.items():
+            request += f"{header}: {value}\r\n"
+
+        # extra new line
         request += '\r\n'
 
         # connect to socket 
