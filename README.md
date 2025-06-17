@@ -13,7 +13,7 @@ formatting.
 
 ---
 
-Todo:
+## Todo:
 
 - [x] Support redirects
 - [ ] Add support for file scheme
