@@ -1,7 +1,7 @@
+from PyQt6 import QtWidgets
 import socket
 import ssl
 import sys
-
 
 class Response:
     def __init__(self, response):
@@ -100,6 +100,14 @@ class URL:
 
         return response
         
+class Browser:
+    def __init__(self):
+        self.app = QtWidgets.QApplication([])
+        self.window = QtWidgets.QWidget()
+
+    def load(self, url):
+        self.window.show()
+
 def show(body):
     # prints text without tags from html file
     in_tag = False
@@ -129,4 +137,7 @@ def load(url):
     show(response.body)
 
 if __name__ == '__main__':
-    load(URL(sys.argv[1]))
+    browser = Browser()
+    browser.load(URL(sys.argv[1]))
+    browser.app.exec()
+

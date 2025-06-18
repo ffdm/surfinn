@@ -13,9 +13,26 @@ formatting.
 
 ---
 
+## Setup
+
+Surfinn uses
+[PyQt6](https://www.riverbankcomputing.com/static/Docs/PyQt6/index.html) as the graphical toolkit. 
+To install on MacOSX with homebrew, use:
+
+`brew install pyqt`
+
+To install on Linux with pip, use:
+
+`pip install PyQt6`
+
+For help, refer to the documentaion
+[here](https://www.riverbankcomputing.com/static/Docs/PyQt6/installation.html).
+
+---
+
 ## Todo:
 
-- [x] Support redirects
+- [ ] Initial GUI
 - [ ] Add support for file scheme
 - [ ] Add support for data scheme
 - [ ] Add support for &lt; and &gt; entities
@@ -23,4 +40,5 @@ formatting.
 - [ ] Keep-alive to speed up repeated requests
 - [ ] Add caching
 - [ ] Support HTTP compression
+- [x] Support redirects
 
