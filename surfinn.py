@@ -1,7 +1,7 @@
-from PyQt6 import QtWidgets
 import socket
 import ssl
 import sys
+import tkinter
 
 class Response:
     def __init__(self, response):
@@ -100,16 +100,47 @@ class URL:
 
         return response
         
+WIDTH, HEIGHT = 800, 600
+
 class Browser:
     def __init__(self):
-        self.app = QtWidgets.QApplication([])
-        self.window = QtWidgets.QWidget()
+        self.window = tkinter.Tk()
+        self.canvas = tkinter.Canvas(
+            self.window,
+            width=WIDTH,
+            height=HEIGHT
+        )
+        self.canvas.pack()
 
     def load(self, url):
-        self.window.show()
+        response = url.request()
 
-def show(body):
-    # prints text without tags from html file
+        # handle redirects
+        redirect_count = 0
+        while response.status[0] == '3' and redirect_count < 5:
+            redirect_count += 1
+            
+            # handle same host/scheme case
+            if response.headers['location'][0] == '/':
+                response = URL(url.scheme+'://'+url.host+response.headers['location']).request()
+            else: 
+                response = URL(response.headers['location']).request()
+
+        # display html body
+        text = lex(response.body)
+        HSTEP, VSTEP = 13, 18
+        cursor_x, cursor_y = HSTEP, VSTEP
+        for c in text:
+            self.canvas.create_text(cursor_x, cursor_y, text=c)
+            cursor_x += HSTEP
+            if cursor_x >= WIDTH - HSTEP:
+                cursor_y += VSTEP
+                cursor_x = HSTEP
+
+
+def lex(body):
+    # returns text without tags from html file
+    text = ""
     in_tag = False
     for c in body:
         if c == '<':
@@ -117,27 +148,10 @@ def show(body):
         elif c == '>':
             in_tag = False
         elif not in_tag:
-            print(c, end='')
-
-def load(url):
-    response = url.request()
-
-    # handle redirects
-    redirect_count = 0
-    while response.status[0] == '3' and redirect_count < 5:
-        redirect_count += 1
-        
-        # handle same host/scheme case
-        if response.headers['location'][0] == '/':
-            response = URL(url.scheme+'://'+url.host+response.headers['location']).request()
-        else: 
-            response = URL(response.headers['location']).request()
-
-    # display html body
-    show(response.body)
+            text += c
+    return text
 
 if __name__ == '__main__':
-    browser = Browser()
-    browser.load(URL(sys.argv[1]))
-    browser.app.exec()
+    Browser().load(URL(sys.argv[1]))
+    tkinter.mainloop()
 

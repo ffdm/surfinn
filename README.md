@@ -15,18 +15,8 @@ formatting.
 
 ## Setup
 
-Surfinn uses
-[PyQt6](https://www.riverbankcomputing.com/static/Docs/PyQt6/index.html) as the graphical toolkit. 
-To install on MacOSX with homebrew, use:
-
-`brew install pyqt`
-
-To install on Linux with pip, use:
-
-`pip install PyQt6`
-
-For help, refer to the documentaion
-[here](https://www.riverbankcomputing.com/static/Docs/PyQt6/installation.html).
+Surfinn uses as the graphical toolkit. This forces me to implement
+various features manually and learn more in the process.
 
 ---
 
