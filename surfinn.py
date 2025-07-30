@@ -127,8 +127,6 @@ class Browser:
 
     def scrolldown(self, event):
         self.scroll += SCROLL_STEP
-        print(event.delta)
-        sys.exit()
         self.draw()
 
     def scrollup(self, event):
